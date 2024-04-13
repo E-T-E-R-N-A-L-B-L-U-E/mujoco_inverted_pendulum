@@ -1,0 +1,51 @@
+<mujoco model="inerted_pendulum.SLDASM">
+  <compiler angle="radian" autolimits="true" meshdir="./meshes"/>
+  <asset>
+    <mesh name="base_link" file="base_link.stl"/>
+    <mesh name="fl_wheel" file="fl_wheel.stl"/>
+    <mesh name="pendulum" file="pendulum.stl"/>
+    <mesh name="br_wheel" file="br_wheel.stl"/>
+    <mesh name="bl_wheel" file="bl_wheel.stl"/>
+    <mesh name="fr_wheel" file="fr_wheel.stl"/>
+
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="512" />
+    <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512" mark="cross" markrgb=".8 .8 .8" />
+    <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true" />
+  </asset>
+  <worldbody>
+    <light directional="true" diffuse=".4 .4 .4" specular="0.1 0.1 0.1" pos="0 0 5.0" dir="0 0 -1" castshadow="false" />
+    <light directional="true" diffuse=".6 .6 .6" specular="0.2 0.2 0.2" pos="0 0 4" dir="0 0 -1" />
+    <geom name="floor" pos="0 0 0" size="15 15 1" type="plane" material="matplane" margin="0.001" condim="3" friction="1 0.005 0.0001" />
+
+    <body name="base_link" pos="0.0 0.0 0.1">
+      <freejoint/>
+      <inertial pos="0 0 -0.034589" mass="2.4406" diaginertia="0.032109 0.018154 0.050048"/>
+      <geom type="mesh" rgba="0.5 0.5 0 1" mesh="base_link"/>
+      <body name="fl_wheel" pos="0.15 -0.2 -0.045" quat="0.707107 0.707107 0 0">
+        <inertial pos="0.025 0 0" mass="0.3927" diaginertia="0.00049087 0.00032725 0.00032725"/>
+        <joint name="fl_joint" pos="0 0 0" axis="1 0 0"/>
+        <geom type="mesh" rgba="0 0.5 0.5 1" mesh="fl_wheel"/>
+      </body>
+      <body name="pendulum" pos="0.0 0.0 0.02" quat="0.522169 0.476802 0.522169 0.476802">
+        <inertial pos="-0.005013 0.14037 -8.8497e-09" quat="0.707107 0.707107 -8.68359e-05 -8.68359e-05" mass="0.7" diaginertia="0.0015915 0.0015915 2.38049e-05"/>
+        <joint name="pendulum_joint" pos="0 0 0" axis="0 0 1"/>
+        <geom type="mesh" rgba="0.8 0.5 0.3 1" mesh="pendulum"/>
+      </body>
+      <body name="br_wheel" pos="-0.15 0.2 -0.045" quat="0.707105 0.707108 0 0">
+        <inertial pos="-0.025 0 0" mass="0.3927" diaginertia="0.00049087 0.00032725 0.00032725"/>
+        <joint name="br_joint" pos="0 0 0" axis="1 0 0"/>
+        <geom type="mesh" rgba="0 0.5 0.5 1" mesh="br_wheel"/>
+      </body>
+      <body name="bl_wheel" pos="0.15 0.2 -0.045" quat="0.707107 0.707107 0 0">
+        <inertial pos="0.025 0 0" mass="0.3927" diaginertia="0.00049087 0.00032725 0.00032725"/>
+        <joint name="bl_joint" pos="0 0 0" axis="1 0 0"/>
+        <geom type="mesh" rgba="0 0.5 0.5 1" mesh="bl_wheel"/>
+      </body>
+      <body name="fr_wheel" pos="-0.15 -0.2 -0.045" quat="0.707105 0.707108 0 0">
+        <inertial pos="-0.025 0 0" mass="0.3927" diaginertia="0.00049087 0.00032725 0.00032725"/>
+        <joint name="fr_joint" pos="0 0 0" axis="1 0 0"/>
+        <geom type="mesh" rgba="0 0.5 0.5 1" mesh="fr_wheel"/>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

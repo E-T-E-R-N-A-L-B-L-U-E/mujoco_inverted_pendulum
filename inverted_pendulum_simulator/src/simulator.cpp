@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     mjData  *d;
 
     // load model from file and check for errors
-    std::string urdf_file = PROJECT_DIR"/urdf/inverted_pendulum.urdf";
+    std::string urdf_file = PROJECT_DIR"/urdf/inverted_pendulum.xml";
     std::cout << "loading urdf file from: " << urdf_file << std::endl;
     m = mj_loadXML(urdf_file.c_str(), NULL, error, 1000);
     if( !m )
@@ -33,7 +33,9 @@ int main(int argc, char** argv)
     ros::Rate rate(10);
     while (ros::ok())
     {
+        using namespace std::chrono;
         mj_step(m, d);
+        std::this_thread::sleep_for(1ms);
         // std::cout << "step once" << std::endl;
     }
 
