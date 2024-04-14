@@ -5,42 +5,18 @@
 #include <ros/ros.h>
 
 #include "inverted_pendulum_simulator/mujoco_viewer.h"
+#include "inverted_pendulum_simulator/inverted_pendulum.h"
 
-std::string wheel_joint_names[4] = {
-    std::string("fl_joint"),
-    std::string("fr_joint"),
-    std::string("bl_joint"),
-    std::string("br_joint"),
-};
-
-std::string pendulum_name = "pendulum_joint";
-
-void handle(mjModel *m, mjData *d)
+void controlInterface(const double &pendulum_current_rad, double &wheel_frec)
 {
-    const mjtNum pendulum_target_rad = 0;
     const double P = 10, I = 0.01, D = 20;
-    int pendulum_id = mj_name2id(m, mjOBJ_JOINT, pendulum_name.c_str());
-    
-    mjtNum pendulum_current_rad = d->qpos[m->jnt_qposadr[pendulum_id]];
-    mjtNum delta = pendulum_target_rad - pendulum_current_rad;
-    static mjtNum last_delta = delta;
-    static mjtNum cummulate_deta = 0;
+    const double pendulum_target_rad = 0;
+    double delta = pendulum_target_rad - pendulum_current_rad;
+    static double last_delta = delta;
+    static double cummulate_deta = 0;
     cummulate_deta += delta;
-    mjtNum pid_result = P * delta + I * cummulate_deta + D * (delta - last_delta);
-    // d->qfrc_applied[m->jnt_dofadr[pendulum_id]] = pid_result;
-
-    int wheel_id[4];
-    for (int i = 0; i < 4; i++)
-        wheel_id[i] = mj_name2id(m, mjOBJ_JOINT, wheel_joint_names[i].c_str());
-    for (int i = 0; i < 4; i++)
-        d->qfrc_applied[m->jnt_dofadr[wheel_id[i]]] = -pid_result;
-
-    last_delta = delta;
-    std::cerr << "id: " << pendulum_id << ", jntadr: " << m->body_jntadr[pendulum_id] << ", qposadr: " << m->jnt_qposadr[pendulum_id] << std::endl;
-    for (int i = 0; i < 8; i++)
-        std::cerr << d->qpos[i] << ", ";
-    std::cerr << std::endl;
-    std::cerr << "current angle: " << pendulum_current_rad / 3.14 * 180. << " ctrl: " << -pid_result << std::endl;
+    double pid_result = P * delta + I * cummulate_deta + D * (delta - last_delta); 
+    wheel_frec = -pid_result;  
 }
 
 int main(int argc, char** argv)
@@ -65,13 +41,16 @@ int main(int argc, char** argv)
     d = mj_makeData(m);
 
     MujocoViewer viewer(m, d, "demo");
+    std::shared_ptr<InvertedPendulum> inverted_pendulum = std::make_shared<InvertedPendulum>(m, d);
+    inverted_pendulum->setControlInterface(&controlInterface);
 
     // run simulation for 10 seconds
     ros::Rate rate(10);
     while (ros::ok())
     {
         using namespace std::chrono;
-        handle(m, d);
+        inverted_pendulum->handle();
+        inverted_pendulum->echo();
         mj_step(m, d);
         std::this_thread::sleep_for(10ms);
         // std::cout << "step once" << std::endl;

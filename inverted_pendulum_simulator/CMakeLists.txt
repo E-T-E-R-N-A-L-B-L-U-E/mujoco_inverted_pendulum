@@ -44,6 +44,7 @@ include_directories(
 
 add_library(simulator_libs STATIC
   src/mujoco_view.cpp
+  src/inverted_pendulum.cpp
 )
 target_link_libraries(simulator_libs
   glfw
