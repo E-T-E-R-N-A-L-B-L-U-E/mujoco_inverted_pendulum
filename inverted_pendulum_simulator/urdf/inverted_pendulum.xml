@@ -19,7 +19,7 @@
 
     <body name="base_link" pos="0.0 0.0 0.1">
       <freejoint/>
-      <inertial pos="0 0 -0.034589" mass="2.4406" diaginertia="0.032109 0.018154 0.050048"/>
+      <inertial pos="0 0 -0.034589" mass="10" diaginertia="0.032109 0.018154 0.050048"/>
       <geom type="mesh" rgba="0.5 0.5 0 1" mesh="base_link"/>
       <body name="fl_wheel" pos="0.15 -0.2 -0.045" quat="0.707107 0.707107 0 0">
         <inertial pos="0.025 0 0" mass="0.3927" diaginertia="0.00049087 0.00032725 0.00032725"/>
@@ -28,7 +28,7 @@
       </body>
       <body name="pendulum" pos="0.0 0.0 0.02" quat="0.522169 0.476802 0.522169 0.476802">
         <inertial pos="-0.005013 0.14037 -8.8497e-09" quat="0.707107 0.707107 -8.68359e-05 -8.68359e-05" mass="0.7" diaginertia="0.0015915 0.0015915 2.38049e-05"/>
-        <joint name="pendulum_joint" pos="0 0 0" axis="0 0 1"/>
+        <joint name="pendulum_joint" pos="0 0 0" axis="0 0 1" range="-1.5 1.5"/>
         <geom type="mesh" rgba="0.8 0.5 0.3 1" mesh="pendulum"/>
       </body>
       <body name="br_wheel" pos="-0.15 0.2 -0.045" quat="0.707105 0.707108 0 0">
