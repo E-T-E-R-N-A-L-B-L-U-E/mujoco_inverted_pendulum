@@ -42,6 +42,10 @@ include_directories(
   ${mujoco_INCLUDE_DIRS}
 )
 
+add_library(controller_libs STATIC
+  src/pid_controller.cpp
+)
+
 add_library(simulator_libs STATIC
   src/mujoco_view.cpp
   src/inverted_pendulum.cpp
@@ -58,3 +62,4 @@ target_include_directories(simulator_libs
 
 add_executable(simulator src/simulator.cpp)
 target_link_libraries(simulator ${catkin_LIBRARIES} simulator_libs mujoco::mujoco ${GLFW3_LIBRARY})
+target_link_libraries(simulator controller_libs)

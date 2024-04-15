@@ -38,7 +38,7 @@ void InvertedPendulum::handle()
     this->_write();
 }
 
-void InvertedPendulum::setControlInterface(void (*control_interface)(const double &, double &))
+void InvertedPendulum::setControlInterface(std::function<void(const double&, double&)> control_interface)
 {
     _control_interface = control_interface;
 }

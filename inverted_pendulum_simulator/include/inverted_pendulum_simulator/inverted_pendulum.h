@@ -5,6 +5,7 @@
 #define INVERTED_PENDULUM_H
 
 #include <string>
+#include <functional>
 #include <mujoco/mujoco.h>
 
 
@@ -34,13 +35,13 @@ private:
     void _read();
     void _write();
 
-    void (*_control_interface)(const double &pendulum_rad, double &wheel_frec);
+    std::function<void(const double&, double&)> _control_interface;
 public:
     explicit InvertedPendulum(mjModel* model, mjData *data);
 
     void handle();
 
-    void setControlInterface(void (*control_interface)(const double &, double &));
+    void setControlInterface(std::function<void(const double&, double&)> control_interface);
 
     void echo();
 };

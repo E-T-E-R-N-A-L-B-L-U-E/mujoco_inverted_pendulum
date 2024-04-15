@@ -1,23 +1,14 @@
 #include <iostream>
 #include <string>
+#include <functional>
 #include <mujoco/mujoco.h>
 
 #include <ros/ros.h>
 
 #include "inverted_pendulum_simulator/mujoco_viewer.h"
 #include "inverted_pendulum_simulator/inverted_pendulum.h"
+#include "control/pid_controller.h"
 
-void controlInterface(const double &pendulum_current_rad, double &wheel_frec)
-{
-    const double P = 10, I = 0.01, D = 20;
-    const double pendulum_target_rad = 0;
-    double delta = pendulum_target_rad - pendulum_current_rad;
-    static double last_delta = delta;
-    static double cummulate_deta = 0;
-    cummulate_deta += delta;
-    double pid_result = P * delta + I * cummulate_deta + D * (delta - last_delta); 
-    wheel_frec = -pid_result;  
-}
 
 int main(int argc, char** argv)
 {
@@ -42,7 +33,11 @@ int main(int argc, char** argv)
 
     MujocoViewer viewer(m, d, "demo");
     std::shared_ptr<InvertedPendulum> inverted_pendulum = std::make_shared<InvertedPendulum>(m, d);
-    inverted_pendulum->setControlInterface(&controlInterface);
+
+    PidController pid_controller(10, 0.01, 20, 1, 100);
+    pid_controller.setTargetRad(0.);
+    auto controller_interface = std::bind(&PidController::handle, &pid_controller, std::placeholders::_1, std::placeholders::_2);
+    inverted_pendulum->setControlInterface(controller_interface);
 
     // run simulation for 10 seconds
     ros::Rate rate(10);
