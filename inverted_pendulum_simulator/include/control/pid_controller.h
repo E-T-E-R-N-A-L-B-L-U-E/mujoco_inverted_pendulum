@@ -24,7 +24,7 @@ public:
 
     void setTargetRad(const double &target_rad);
 
-    void handle(const double &pendulum_rad, double &wheel_frec) override;
+    void handle(const double &pendulum_rad, const double &car_speed, double &wheel_frec) override;
 };
 
 

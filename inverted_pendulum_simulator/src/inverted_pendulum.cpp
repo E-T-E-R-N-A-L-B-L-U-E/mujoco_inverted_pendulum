@@ -7,7 +7,24 @@
 
 void InvertedPendulum::_read()
 {
+    if (_tick < 0)
+    {
+        _wheel_pos = _data->qpos[_model->jnt_qposadr[_wheel_id[0]]];
+        _tick = _data->time;
+    }
+    double dt = _data->time - _tick;
+    _tick = _data->time;
     _pendulum_rad = _data->qpos[_model->jnt_qposadr[_pendulum_id]];
+    _wheel_speed = (_data->qpos[_model->jnt_qposadr[_wheel_id[0]]] - _wheel_pos);
+    if (_wheel_speed > 3.1415926)
+        _wheel_speed = (_wheel_speed - 2 * 3.1415926);
+    else if (_wheel_speed < -3.1415926)
+        _wheel_speed = (_wheel_speed + 2 * 3.1415926);
+    if (dt > 0)
+        _wheel_speed = _wheel_speed / dt * 0.05;
+    else
+        _wheel_speed = 0.;
+    _wheel_pos = _data->qpos[_model->jnt_qposadr[_wheel_id[0]]];
 }
 
 void InvertedPendulum::_write()
@@ -27,6 +44,9 @@ InvertedPendulum::InvertedPendulum(mjModel* model, mjData *data)
 
     _wheel_frec = 0.;
     _pendulum_rad = 0.;
+    _wheel_pos = 0.;
+    _wheel_speed = 0.;
+    _tick = -1.;
     _control_interface = nullptr;
 }
 
@@ -34,11 +54,11 @@ void InvertedPendulum::handle()
 {
     this->_read();
     if (_control_interface != nullptr)
-        _control_interface(this->_pendulum_rad, this->_wheel_frec);
+        _control_interface(this->_pendulum_rad, this->_wheel_speed, this->_wheel_frec);
     this->_write();
 }
 
-void InvertedPendulum::setControlInterface(std::function<void(const double&, double&)> control_interface)
+void InvertedPendulum::setControlInterface(std::function<void(const double&, const double&, double&)> control_interface)
 {
     _control_interface = control_interface;
 }

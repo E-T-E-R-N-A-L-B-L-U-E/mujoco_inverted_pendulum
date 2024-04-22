@@ -8,6 +8,7 @@
 #include "inverted_pendulum_simulator/mujoco_viewer.h"
 #include "inverted_pendulum_simulator/inverted_pendulum.h"
 #include "control/pid_controller.h"
+#include "control/mpc_controller.h"
 
 
 int main(int argc, char** argv)
@@ -34,9 +35,20 @@ int main(int argc, char** argv)
     MujocoViewer viewer(m, d, "demo");
     std::shared_ptr<InvertedPendulum> inverted_pendulum = std::make_shared<InvertedPendulum>(m, d);
 
+    Eigen::Matrix4d Q;
+    Eigen::Matrix<double, 1, 1> R;
+    Q << 0.5, 0, 0, 0,
+         0, 0.002, 0, 0,
+         0, 0, 3, 0,
+         0, 0, 0, 0.001;
+    R << 0.0001;
+    MpcController mpc_controller(Q, R, 10);
+    mpc_controller.setTargetRad(0., 0.);
+
+
     PidController pid_controller(10, 0.01, 20, 1, 100);
     pid_controller.setTargetRad(0.);
-    auto controller_interface = std::bind(&PidController::handle, &pid_controller, std::placeholders::_1, std::placeholders::_2);
+    auto controller_interface = std::bind(&MpcController::handle, &mpc_controller, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     inverted_pendulum->setControlInterface(controller_interface);
 
     // run simulation for 10 seconds
@@ -48,7 +60,7 @@ int main(int argc, char** argv)
         inverted_pendulum->echo();
         mj_step(m, d);
         std::this_thread::sleep_for(10ms);
-        // std::cout << "step once" << std::endl;
+        std::cout << "step once: " << d->time << std::endl;
     }
 
     viewer.close();

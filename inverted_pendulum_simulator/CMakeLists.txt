@@ -5,6 +5,7 @@ find_package(mujoco 2.3 REQUIRED)
 
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(OsqpEigen REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -44,6 +45,10 @@ include_directories(
 
 add_library(controller_libs STATIC
   src/pid_controller.cpp
+  src/mpc_controller.cpp
+)
+target_link_libraries(controller_libs
+  OsqpEigen::OsqpEigen
 )
 
 add_library(simulator_libs STATIC

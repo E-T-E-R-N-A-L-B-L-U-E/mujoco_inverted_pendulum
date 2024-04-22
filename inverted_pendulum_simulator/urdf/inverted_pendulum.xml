@@ -19,7 +19,7 @@
 
     <body name="base_link" pos="0.0 0.0 0.1">
       <freejoint/>
-      <inertial pos="0 0 -0.034589" mass="10" diaginertia="0.032109 0.018154 0.050048"/>
+      <inertial pos="0 0 -0.034589" mass="2" diaginertia="0.032109 0.018154 0.050048"/>
       <geom type="mesh" rgba="0.5 0.5 0 1" mesh="base_link"/>
       <body name="fl_wheel" pos="0.15 -0.2 -0.045" quat="0.707107 0.707107 0 0">
         <inertial pos="0.025 0 0" mass="0.3927" diaginertia="0.00049087 0.00032725 0.00032725"/>

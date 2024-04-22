@@ -30,18 +30,19 @@ private:
     mjData *_data;
 
     double _pendulum_rad;
-    double _wheel_frec;
+    double _wheel_frec, _wheel_pos, _wheel_speed;
+    double _tick;
 
     void _read();
     void _write();
 
-    std::function<void(const double&, double&)> _control_interface;
+    std::function<void(const double&, const double&, double&)> _control_interface;
 public:
     explicit InvertedPendulum(mjModel* model, mjData *data);
 
     void handle();
 
-    void setControlInterface(std::function<void(const double&, double&)> control_interface);
+    void setControlInterface(std::function<void(const double&, const double&, double&)> control_interface);
 
     void echo();
 };

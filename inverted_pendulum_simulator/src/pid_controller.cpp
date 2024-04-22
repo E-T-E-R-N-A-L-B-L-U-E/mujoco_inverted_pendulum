@@ -29,7 +29,7 @@ void PidController::setTargetRad(const double &target_rad)
     _ref = target_rad;
 }
 
-void PidController::handle(const double &pendulum_rad, double &wheel_frec)
+void PidController::handle(const double &pendulum_rad, const double &car_speed, double &wheel_frec)
 {
     _ref = pendulum_rad;
     this->calculatePid();

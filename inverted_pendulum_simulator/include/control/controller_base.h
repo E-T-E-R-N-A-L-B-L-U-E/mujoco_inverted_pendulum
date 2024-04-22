@@ -9,7 +9,7 @@ class Controller
 {
 public:
     Controller(){}
-    virtual void handle(const double &pendulum_rad, double &wheel_frec) {}
+    virtual void handle(const double &pendulum_rad, const double &car_speed, double &wheel_frec) {}
 };
 
 
