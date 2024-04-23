@@ -4,8 +4,7 @@
 
 #include "control/mpc_controller.h"
 
-MpcController::MpcController(const Eigen::Matrix4d &Q, const Eigen::Matrix<double, 1, 1> &R, const size_t &mpc_window)
-    : _mpc_window(mpc_window)
+MpcController::MpcController(const Eigen::Matrix4d &Q, const Eigen::Matrix<double, 1, 1> &R)
 {
     // set A and B
     _A << 0, 1, 0, 0,
@@ -14,96 +13,17 @@ MpcController::MpcController(const Eigen::Matrix4d &Q, const Eigen::Matrix<doubl
           0, -b * m * l / P, m * g * l * (M + m) / P, 0;
     _B << 0, (I + m * l * l) / P, 0, m * l / P;
 
-
-    _A_bar = Eigen::Matrix4d::Identity() + T * _A;
-    _B_bar = T * _B;
-
-    // calculate phi
-    _phi.resize(4 * _mpc_window, 4);
-    Eigen::Matrix4d phi_block = _A_bar;
-    for (int i = 0; i < _mpc_window; i++)
-    {
-        for (int j = 0; j < 4; j++)
-            for (int k = 0; k < 4; k++)
-                _phi.insert(i * 4 + j, k) = phi_block(j, k);
-        phi_block = phi_block * _A_bar;
-    }
-    
-    // calculate theta
-    Eigen::Matrix4d _A_bar_inv = _A_bar.inverse();
-    _theta.resize(4 * _mpc_window, _mpc_window);
-    Eigen::Vector4d val = _B_bar;
-    for (int i = 0; i < _mpc_window; i++)
-    {
-        for (int j = _mpc_window; j > i; j--)
-        {
-            size_t col = _mpc_window - j, row = i + col;
-            for (int ii = 0; ii < 4; ii++)
-                _theta.insert(row * 4 + ii, col) = val(ii, 0);
-        }
-        val = _A_bar_inv * val;
-    }
-
-    // generate Q
-    _Q.resize(4 * _mpc_window, 4 * _mpc_window);
-    for (int i = 0; i < _mpc_window; i++)
-        for (int j = 0; j < 4; j++)
-            _Q.insert(i * 4 + j, i * 4 + j) = Q(j, j);
-    
-    // generate R
-    _R.resize(_mpc_window, _mpc_window);
-    for (int i = 0; i < _mpc_window; i++)
-        _R.insert(i, i) = R(0, 0);
+    mpc_solver = std::make_shared<MpcSolver<4, 1, _mpc_window>>(_A, _B, Q, R, T);
 
     pos_estimate = 0.;
     rad_last = 0.;
-}
-
-bool MpcController::solveMPC()
-{
-    _E.resize(4 * _mpc_window, 1);
-    _E = _phi * _x - _x_R;
-
-    Eigen::SparseMatrix<double> H;
-    Eigen::VectorXd f(_mpc_window);
-    H = 2 * (_theta.transpose() * _Q * _theta + _R);
-    f = (2 * _E.transpose() * _Q * _theta).transpose();
-
-    OsqpEigen::Solver solver;
-
-    solver.settings()->setWarmStart(true);
-    solver.settings()->setVerbosity(false);
-
-    solver.data()->setNumberOfVariables(_mpc_window);
-    solver.data()->setNumberOfConstraints(0);
-
-    if (!solver.data()->setHessianMatrix(H))
-        return false;
-    if (!solver.data()->setGradient(f))
-        return false;
-
-    if (!solver.initSolver())
-        return false;
-    if (solver.solveProblem() != OsqpEigen::ErrorExitFlag::NoError)
-        return false;
-    
-    Eigen::VectorXd result = solver.getSolution();
-
-    _u(0, 0) = result(0, 0);
-    // if (_u(0, 0) > 0.5) _u(0, 0) = 0.5;
-    // if (_u(0, 0) < -0.5) _u(0, 0) = -0.5;
-    return true;
 }
 
 void MpcController::setTargetRad(const double &target_pos, const double &target_rad)
 {
     _x_ref << target_pos, 0, target_rad, 0;
 
-    // set R_x
-    _x_R.resize(4 * _mpc_window, 1);
-    for (int i = 0; i < _mpc_window; i++)
-        for (int j = 0; j < 4; j++)
-            _x_R.insert(i * 4 + j, 0) = _x_ref(j, 0);
+    mpc_solver->updateReference(_x_ref);
 }
 
 void MpcController::handle(const double &pendulum_rad, const double &car_speed, double &wheel_frec)
@@ -113,7 +33,9 @@ void MpcController::handle(const double &pendulum_rad, const double &car_speed, 
     std::cout << "x: " << _x << std::endl;
     rad_last = pendulum_rad;
 
-    if (solveMPC())
+    mpc_solver->updateFeedBack(_x);
+
+    if (mpc_solver->solveMPC(_u))
         wheel_frec = _u(0, 0) / r / 4;
     else
         wheel_frec = 0.;

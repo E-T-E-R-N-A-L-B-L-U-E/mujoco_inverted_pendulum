@@ -6,8 +6,10 @@
 #define MPC_CONTROLLER_H
 
 #include "control/controller_base.h"
+#include "mpc_solver/mpc_solver.h"
 #include <OsqpEigen/OsqpEigen.h>
 
+const int _mpc_window = 10;
 
 class MpcController : public Controller
 {
@@ -24,8 +26,6 @@ private:
     const double P = (M + m) * I + M * m * l * l;
     const double T = 0.002;
 
-    const size_t _mpc_window;
-
     Eigen::Matrix4d _A, _A_bar;
     Eigen::Vector4d _B, _B_bar;
 
@@ -34,12 +34,13 @@ private:
     Eigen::Vector4d _x, _x_ref;
     Eigen::Matrix<double, 1, 1> _u;
 
+    std::shared_ptr<MpcSolver<4, 1, 10>> mpc_solver;
+
     double pos_estimate, rad_last;
 
-    bool solveMPC();
 public:
 
-    explicit MpcController(const Eigen::Matrix4d &Q, const Eigen::Matrix<double, 1, 1> &R, const size_t &mpc_window = 10);
+    explicit MpcController(const Eigen::Matrix4d &Q, const Eigen::Matrix<double, 1, 1> &R);
 
     void setTargetRad(const double &target_pos, const double &target_rad);
 

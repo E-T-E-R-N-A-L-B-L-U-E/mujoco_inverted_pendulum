@@ -42,7 +42,7 @@ int main(int argc, char** argv)
          0, 0, 3, 0,
          0, 0, 0, 0.001;
     R << 0.0001;
-    MpcController mpc_controller(Q, R, 10);
+    MpcController mpc_controller(Q, R);
     mpc_controller.setTargetRad(0., 0.);
 
 
