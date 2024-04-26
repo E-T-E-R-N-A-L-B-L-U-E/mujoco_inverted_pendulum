@@ -10,6 +10,8 @@
 #include "control/pid_controller.h"
 #include "control/mpc_controller.h"
 
+const std::string CONTROLLER = "MPC";
+
 
 int main(int argc, char** argv)
 {
@@ -32,9 +34,11 @@ int main(int argc, char** argv)
     // make data corresponding to model
     d = mj_makeData(m);
 
+    // create simulator
     MujocoViewer viewer(m, d, "demo");
     std::shared_ptr<InvertedPendulum> inverted_pendulum = std::make_shared<InvertedPendulum>(m, d);
 
+    // config mpc controller
     Eigen::Matrix4d Q;
     Eigen::Matrix<double, 1, 1> R;
     Q << 0.5, 0, 0, 0,
@@ -45,11 +49,19 @@ int main(int argc, char** argv)
     MpcController mpc_controller(Q, R);
     mpc_controller.setTargetRad(0., 0.);
 
-
+    // config pid controller
     PidController pid_controller(10, 0.01, 20, 1, 100);
     pid_controller.setTargetRad(0.);
-    auto controller_interface = std::bind(&MpcController::handle, &mpc_controller, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-    inverted_pendulum->setControlInterface(controller_interface);
+
+    if (CONTROLLER == "MPC")
+    {
+        auto controller_interface = std::bind(&MpcController::handle, &mpc_controller, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        inverted_pendulum->setControlInterface(controller_interface);
+    } else
+    {
+        auto controller_interface = std::bind(&PidController::handle, &pid_controller, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+        inverted_pendulum->setControlInterface(controller_interface);
+    }
 
     // run simulation for 10 seconds
     ros::Rate rate(10);
